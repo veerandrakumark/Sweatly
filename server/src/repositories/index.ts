@@ -4,3 +4,4 @@ export * from './userRepository.js';
 export * from './activityRepository.js';
 export * from './notificationRepository.js';
 export * from './sportsGroundRepository.js';
+export * from './refreshTokenRepository.js';

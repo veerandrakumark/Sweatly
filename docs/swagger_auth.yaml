@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: Sweatly Authentication & Authorization API
+  description: API specifications for Sweatly's secure MERN authentication and RBAC services.
+  version: 1.0.0
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register a new athlete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, preferredSports, location]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                preferredSports:
+                  type: array
+                  items:
+                    type: string
+                location:
+                  type: object
+                  properties:
+                    coordinates:
+                      type: array
+                      items:
+                        type: number
+                      minItems: 2
+                      maxItems: 2
+      responses:
+        '201':
+          description: Registration successful, check verification email.
+  /api/v1/auth/login:
+    post:
+      summary: Login and establish user session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login, sets HttpOnly refresh cookie.
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke session and clear cookies
+      responses:
+        '200':
+          description: Session cleared.
+  /api/v1/auth/refresh-token:
+    post:
+      summary: Rotate access and refresh tokens
+      responses:
+        '200':
+          description: Returns a new access token and rotates refresh cookie.
+  /api/v1/auth/me:
+    get:
+      summary: Retrieve current authenticated user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details.
+  /api/v1/auth/change-password:
+    patch:
+      summary: Update password for authenticated user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [oldPassword, newPassword, confirmNewPassword]
+      responses:
+        '200':
+          description: Password updated.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

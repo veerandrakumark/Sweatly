@@ -6,6 +6,31 @@ export class UserRepository extends BaseRepository<IUser> {
     super(User);
   }
 
+  // Find user by email (case-insensitive lookup)
+  async findByEmail(email: string): Promise<IUser | null> {
+    return this.model.findOne({ email: email.toLowerCase() }).exec();
+  }
+
+  // Find user by forgot password reset token hash and verify expiration
+  async findByResetToken(tokenHash: string): Promise<IUser | null> {
+    return this.model
+      .findOne({
+        passwordResetToken: tokenHash,
+        passwordResetExpires: { $gt: new Date() },
+      })
+      .exec();
+  }
+
+  // Find user by verification token hash and verify expiration
+  async findByVerificationToken(tokenHash: string): Promise<IUser | null> {
+    return this.model
+      .findOne({
+        emailVerificationToken: tokenHash,
+        emailVerificationExpires: { $gt: new Date() },
+      })
+      .exec();
+  }
+
   // Geospatial search: locate athletes within a given radius in meters
   async findNearbyAthletes(
     longitude: number,

@@ -13,6 +13,11 @@ export interface IUser extends IBaseDocument {
     coordinates: [number, number]; // [longitude, latitude]
   };
   avatarUrl?: string;
+  isEmailVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>; // Instance method template
 }
 
@@ -72,6 +77,26 @@ const userSchema = new Schema<IUser>(
     },
     avatarUrl: {
       type: String,
+      required: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      required: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      required: false,
+    },
+    passwordResetToken: {
+      type: String,
+      required: false,
+    },
+    passwordResetExpires: {
+      type: Date,
       required: false,
     },
   },
