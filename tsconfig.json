@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "skipLibCheck": true
+  },
+  "files": [],
+  "references": [{ "path": "shared" }, { "path": "client" }, { "path": "server" }]
+}

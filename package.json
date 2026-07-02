@@ -1,0 +1,48 @@
+{
+  "name": "sweatly",
+  "version": "1.0.0",
+  "description": "Production-grade MERN Monorepo for Sweatly",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "client:dev": "npm run dev -w client",
+    "server:dev": "npm run dev -w server",
+    "shared:build": "npm run build -w shared",
+    "dev": "concurrently -n client,server -c cyan,green \"npm run dev -w client\" \"npm run dev -w server\"",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "format": "prettier --write .",
+    "clean": "node scripts/clean.js",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "mern",
+    "monorepo",
+    "sweatly",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.16.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^15.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.17.0"
+  }
+}

@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-primary text-text-primary font-sans antialiased;
+  }
+
+  code {
+    @apply bg-background-secondary border border-border-subtle rounded px-1.5 py-0.5 text-brand-primary font-mono text-sm;
+  }
+}
+
+/* Custom baseline utility classes for premium glow hover micro-animations */
+.glow-card {
+  @apply transition-all duration-300 border border-border-subtle rounded-xl bg-background-secondary;
+}
+
+.glow-card:hover {
+  @apply border-brand-primary shadow-glow;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-brand-primary text-background-primary font-semibold rounded-lg transition-all duration-300 hover:bg-brand-hover active:scale-95;
+}
