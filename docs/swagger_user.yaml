@@ -1,0 +1,564 @@
+openapi: 3.0.3
+info:
+  title: Sweatly User Module API
+  description: API specifications for Sweatly's User Profile, Sports Profile, Location Profile, and Avatar Upload services.
+  version: 1.0.0
+security:
+  - BearerAuth: []
+paths:
+  /api/v1/users/me:
+    get:
+      summary: Retrieve current authenticated user profile
+      responses:
+        '200':
+          description: Current user profile details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/me/profile:
+    patch:
+      summary: Update basic profile details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/me/sports:
+    patch:
+      summary: Update sports profiles and skill levels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SportsUpdateRequest'
+      responses:
+        '200':
+          description: Sports settings updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/me/privacy:
+    patch:
+      summary: Update profile privacy configurations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivacyUpdateRequest'
+      responses:
+        '200':
+          description: Privacy settings updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/me/locations:
+    patch:
+      summary: Update current location or home coordinates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdateRequest'
+      responses:
+        '200':
+          description: Location configuration updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/400ValidationError'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/me/avatar:
+    post:
+      summary: Upload or replace profile picture
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Profile image file (JPEG, PNG, WebP. Max 5MB).
+      responses:
+        '200':
+          description: Avatar uploaded successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Avatar uploaded successfully.
+                  avatarUrl:
+                    type: string
+                    example: /uploads/avatars/1720000000000-123456789.png
+        '400':
+          description: Invalid file format or size limit exceeded.
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+    delete:
+      summary: Delete profile picture
+      responses:
+        '200':
+          description: Avatar deleted successfully.
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/nearby:
+    get:
+      summary: Proximity athlete lookup
+      parameters:
+        - name: lon
+          in: query
+          required: true
+          schema:
+            type: number
+          description: Current longitude coordinate.
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+          description: Current latitude coordinate.
+        - name: radius
+          in: query
+          schema:
+            type: number
+            default: 5000
+          description: Search radius in meters.
+        - name: sportId
+          in: query
+          schema:
+            type: string
+          description: Filter athletes by specific Sport ID.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Pagination page offset.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Query page size limit.
+      responses:
+        '200':
+          description: Proximity list of nearby athletes retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Missing longitude or latitude parameter.
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/users/{id}:
+    get:
+      summary: Get player profile by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The 24-character Mongoose ObjectId of the target user.
+      responses:
+        '200':
+          description: Profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403ProfileRestricted'
+        '404':
+          description: User not found.
+
+  /api/v1/users/username/{username}:
+    get:
+      summary: Get player profile by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The lowercase unique username.
+      responses:
+        '200':
+          description: Profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '403':
+          $ref: '#/components/responses/403ProfileRestricted'
+        '404':
+          description: User not found.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    401Unauthorized:
+      description: Authentication required or token expired.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Authentication required. Missing token.
+    403ProfileRestricted:
+      description: Profile access forbidden due to private visibility level.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: This profile is private.
+    400ValidationError:
+      description: Request body fields failed schema requirements.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: Validation error on field [username]...
+
+  schemas:
+    GeoPoint:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type:
+          type: string
+          enum: [Point]
+          example: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+          example: [-74.006, 40.7128]
+
+    UserResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6688f9e16cb0b82f099c2b9a
+        name:
+          type: string
+          example: Jane Miller
+        email:
+          type: string
+          example: jane.miller@example.com
+        username:
+          type: string
+          example: janemiller_847192
+        role:
+          type: string
+          enum: [User, Admin]
+          example: User
+        avatarUrl:
+          type: string
+          example: /uploads/avatars/1720000000000-123456789.png
+        bio:
+          type: string
+          example: Active fitness enthusiast, looking for local soccer groups.
+        gender:
+          type: string
+          enum: [male, female, non-binary, prefer-not-to-say, other]
+          example: female
+        country:
+          type: string
+          example: United States
+        state:
+          type: string
+          example: New York
+        city:
+          type: string
+          example: New York City
+        preferredLanguage:
+          type: string
+          example: en
+        timezone:
+          type: string
+          example: EST
+        sportsProfile:
+          type: object
+          properties:
+            favoriteSports:
+              type: array
+              items:
+                type: string
+              example: [6688f9e16cb0b82f099c2bb1]
+            primarySport:
+              type: string
+              example: 6688f9e16cb0b82f099c2bb1
+            sportsDetails:
+              type: array
+              items:
+                type: object
+                properties:
+                  sportId:
+                    type: string
+                  skillLevel:
+                    type: string
+                    enum: [beginner, intermediate, advanced]
+                  experienceLevel:
+                    type: string
+                    enum: [0-1 years, 1-3 years, 3-5 years, 5+ years]
+                  playingPosition:
+                    type: string
+                example:
+                  sportId: 6688f9e16cb0b82f099c2bb1
+                  skillLevel: intermediate
+                  experienceLevel: 1-3 years
+                  playingPosition: Midfielder
+            preferredPlayingTime:
+              type: array
+              items:
+                type: string
+              example: [evening, weekends]
+            availability:
+              type: array
+              items:
+                type: string
+              example: [weekday_evenings, weekend_mornings]
+            fitnessInterests:
+              type: array
+              items:
+                type: string
+              example: [running, cycling, crossfit]
+        currentLocation:
+          $ref: '#/components/schemas/GeoPoint'
+        homeLocation:
+          $ref: '#/components/schemas/GeoPoint'
+        locationVisibility:
+          type: string
+          enum: [public, private, friends]
+          example: public
+        privacySettings:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum: [public, private, friends]
+              example: public
+            showLocation:
+              type: boolean
+              example: true
+            showStatistics:
+              type: boolean
+              example: true
+            showOnlineStatus:
+              type: boolean
+              example: true
+            showActivityHistory:
+              type: boolean
+              example: true
+        statistics:
+          type: object
+          properties:
+            totalActivities:
+              type: integer
+              example: 12
+            sportsPlayedCount:
+              type: integer
+              example: 2
+            weeklyActivities:
+              type: integer
+              example: 3
+            currentStreak:
+              type: integer
+              example: 4
+            longestStreak:
+              type: integer
+              example: 7
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        username:
+          type: string
+          pattern: '^[a-zA-Z0-9_]+$'
+        bio:
+          type: string
+          maxLength: 500
+        gender:
+          type: string
+          enum: [male, female, non-binary, prefer-not-to-say, other]
+        dateOfBirth:
+          type: string
+          format: date-time
+        phoneNumber:
+          type: string
+        country:
+          type: string
+        state:
+          type: string
+        city:
+          type: string
+        preferredLanguage:
+          type: string
+        timezone:
+          type: string
+
+    SportsUpdateRequest:
+      type: object
+      properties:
+        favoriteSports:
+          type: array
+          items:
+            type: string
+        primarySport:
+          type: string
+        sportsDetails:
+          type: array
+          items:
+            type: object
+            required: [sportId, skillLevel, experienceLevel]
+            properties:
+              sportId:
+                type: string
+              skillLevel:
+                type: string
+                enum: [beginner, intermediate, advanced]
+              experienceLevel:
+                type: string
+                enum: [0-1 years, 1-3 years, 3-5 years, 5+ years]
+              playingPosition:
+                type: string
+        preferredPlayingTime:
+          type: array
+          items:
+            type: string
+        availability:
+          type: array
+          items:
+            type: string
+        fitnessInterests:
+          type: array
+          items:
+            type: string
+
+    PrivacyUpdateRequest:
+      type: object
+      properties:
+        profileVisibility:
+          type: string
+          enum: [public, private, friends]
+        showLocation:
+          type: boolean
+        showStatistics:
+          type: boolean
+        showOnlineStatus:
+          type: boolean
+        showActivityHistory:
+          type: boolean
+
+    LocationUpdateRequest:
+      type: object
+      properties:
+        currentLocation:
+          type: object
+          required: [coordinates]
+          properties:
+            coordinates:
+              type: array
+              items:
+                type: number
+        homeLocation:
+          type: object
+          required: [coordinates]
+          properties:
+            coordinates:
+              type: array
+              items:
+                type: number
+        locationVisibility:
+          type: string
+          enum: [public, private, friends]

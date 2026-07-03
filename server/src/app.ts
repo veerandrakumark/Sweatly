@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import { logger } from './utils/logger.js';
 import authRouter from './routes/authRoutes.js';
+import userRouter from './routes/userRoutes.js';
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use(
 
 // API Version 1 - Authentication & Health Check routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
 
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({

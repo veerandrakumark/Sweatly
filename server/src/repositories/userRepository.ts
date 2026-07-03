@@ -11,6 +11,11 @@ export class UserRepository extends BaseRepository<IUser> {
     return this.model.findOne({ email: email.toLowerCase() }).exec();
   }
 
+  // Find user by username (case-insensitive lookup)
+  async findByUsername(username: string): Promise<IUser | null> {
+    return this.model.findOne({ username: username.toLowerCase() }).exec();
+  }
+
   // Find user by forgot password reset token hash and verify expiration
   async findByResetToken(tokenHash: string): Promise<IUser | null> {
     return this.model
