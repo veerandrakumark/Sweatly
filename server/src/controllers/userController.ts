@@ -77,7 +77,6 @@ export class UserController {
     // Apply conditional privacy filters based on user's privacy settings
     const showStats = userObj.privacySettings?.showStatistics !== false;
     const showLocation = userObj.privacySettings?.showLocation !== false;
-    const showHistory = userObj.privacySettings?.showActivityHistory !== false;
 
     if (!showStats) {
       delete userObj.statistics;
