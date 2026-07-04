@@ -82,6 +82,10 @@ export interface IUser extends IBaseDocument {
   // Statistics
   statistics: IUserStatistics;
 
+  // Online Presence
+  onlineStatus: boolean;
+  lastSeen: Date;
+
   comparePassword(candidatePassword: string): Promise<boolean>; // Instance method template
 }
 
@@ -373,6 +377,14 @@ const userSchema = new Schema<IUser>(
         followingCount: 0,
         friendsCount: 0,
       }),
+    },
+    onlineStatus: {
+      type: Boolean,
+      default: false,
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

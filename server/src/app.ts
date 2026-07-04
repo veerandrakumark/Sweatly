@@ -16,6 +16,8 @@ import likeRouter from './routes/likeRoutes.js';
 import nearbyRouter from './routes/nearbyRoutes.js';
 import groundRouter from './routes/groundRoutes.js';
 import sessionRouter from './routes/sessionRoutes.js';
+import presenceRouter from './routes/presenceRoutes.js';
+import notificationRouter from './routes/notificationRoutes.js';
 
 const app = express();
 
@@ -58,6 +60,8 @@ app.use('/api/v1/likes', likeRouter);
 app.use('/api/v1/nearby', nearbyRouter);
 app.use('/api/v1/grounds', groundRouter);
 app.use('/api/v1/sessions', sessionRouter);
+app.use('/api/v1/presence', presenceRouter);
+app.use('/api/v1/notifications', notificationRouter);
 
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({

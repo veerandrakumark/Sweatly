@@ -1,6 +1,8 @@
 import { LikeRepository } from '../repositories/likeRepository.js';
 import { ActivityRepository } from '../repositories/activityRepository.js';
 import { AppError } from '../utils/appError.js';
+import { eventBus } from '../utils/eventBus.js';
+import { notificationService } from './notificationService.js';
 
 export class LikeService {
   private likeRepo: LikeRepository;
@@ -25,6 +27,20 @@ export class LikeService {
     if (like) {
       // Increment likes counter atomically on activity
       await this.activityRepo.incrementLikesCount(activityId);
+
+      // Trigger realtime events
+      eventBus.publish('activity:liked', { activityId, userId });
+
+      // Create notification
+      if (activity.hostId && activity.hostId.toString() !== userId) {
+        await notificationService.createNotification(
+          activity.hostId.toString(),
+          'like',
+          'Activity Liked',
+          'A user liked your activity.',
+          activityId
+        );
+      }
     }
   }
 
@@ -42,6 +58,9 @@ export class LikeService {
     if (removed) {
       // Decrement likes counter atomically on activity
       await this.activityRepo.decrementLikesCount(activityId);
+
+      // Trigger realtime events
+      eventBus.publish('activity:unliked', { activityId, userId });
     }
   }
 

@@ -3,7 +3,7 @@ import { IBaseDocument } from './baseSchema.js';
 
 export interface INotification extends IBaseDocument {
   userId: Types.ObjectId;
-  type: 'invite' | 'rsvp' | 'comment' | 'system';
+  type: 'like' | 'comment' | 'invite' | 'rsvp' | 'friend_request' | 'system';
   title: string;
   message: string;
   isRead: boolean;
@@ -19,7 +19,7 @@ const notificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ['invite', 'rsvp', 'comment', 'system'],
+      enum: ['like', 'comment', 'invite', 'rsvp', 'friend_request', 'system'],
       required: [true, 'Notification type is required'],
     },
     title: {

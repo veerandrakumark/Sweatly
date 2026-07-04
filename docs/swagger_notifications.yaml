@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: Sweatly Realtime Notifications API
+  description: OpenAPI specifications for retrieving, marking read, and deleting user notifications inside the Sweatly application.
+  version: 1.0.0
+security:
+  - BearerAuth: []
+paths:
+  /api/v1/notifications:
+    get:
+      summary: Get paginated notifications for the authenticated user
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A list of notifications.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+
+  /api/v1/notifications/unread-count:
+    get:
+      summary: Retrieve count of unread notifications
+      responses:
+        '200':
+          description: Unread notification count payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      unreadCount:
+                        type: integer
+
+  /api/v1/notifications/read-all:
+    patch:
+      summary: Mark all unread notifications as read
+      responses:
+        '200':
+          description: Notifications marked read successfully.
+
+  /api/v1/notifications/{id}/read:
+    patch:
+      summary: Mark a single notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification marked read.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Notification'
+
+  /api/v1/notifications/{id}:
+    delete:
+      summary: Soft delete a single notification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification deleted.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+          enum: [like, comment, invite, rsvp, friend_request, system]
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        targetId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

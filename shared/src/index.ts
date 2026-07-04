@@ -348,3 +348,11 @@ export const sessionCreateSchema = z.object({
 export type NearbySearchInput = z.infer<typeof nearbySearchSchema>;
 export type SportsGroundCreateInput = z.infer<typeof sportsGroundCreateSchema>;
 export type SessionCreateInput = z.infer<typeof sessionCreateSchema>;
+
+// Notification list query validation schema
+export const notificationQuerySchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+});
+
+export type NotificationQueryInput = z.infer<typeof notificationQuerySchema>;

@@ -4,6 +4,7 @@ import { IActivity } from '../models/activityModel.js';
 import { IGeoJSONPoint } from '../models/userModel.js';
 import { AppError } from '../utils/appError.js';
 import { Types } from 'mongoose';
+import { eventBus } from '../utils/eventBus.js';
 
 export class ActivityService {
   private activityRepo: ActivityRepository;
@@ -34,6 +35,9 @@ export class ActivityService {
 
     // Update host user profile statistics asynchronously
     await statisticsService.updateUserStats(hostId);
+
+    // Publish event
+    eventBus.publish('activity:created', { activityId: activity._id.toString(), activity });
 
     return activity;
   }

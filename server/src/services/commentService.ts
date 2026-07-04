@@ -3,6 +3,8 @@ import { ActivityRepository } from '../repositories/activityRepository.js';
 import { IComment } from '../models/commentModel.js';
 import { AppError } from '../utils/appError.js';
 import { Types } from 'mongoose';
+import { eventBus } from '../utils/eventBus.js';
+import { notificationService } from './notificationService.js';
 
 export class CommentService {
   private commentRepo: CommentRepository;
@@ -34,9 +36,10 @@ export class CommentService {
       content,
     };
 
+    let parentComment: any = null;
     // If it's a nested reply, validate the parent comment
     if (parentId) {
-      const parentComment = await this.commentRepo.findById(parentId);
+      parentComment = await this.commentRepo.findById(parentId);
       if (!parentComment) {
         throw new AppError('Parent comment not found.', 404);
       }
@@ -50,6 +53,39 @@ export class CommentService {
 
     // Increment activity comments count counter
     await this.activityRepo.incrementCommentsCount(activityId);
+
+    // Realtime events & Notifications
+    if (parentId && parentComment) {
+      eventBus.publish('activity:replied', {
+        activityId,
+        commentId: comment._id.toString(),
+        parentId,
+      });
+
+      // Notify parent comment author
+      if (parentComment.userId && parentComment.userId.toString() !== userId) {
+        await notificationService.createNotification(
+          parentComment.userId.toString(),
+          'comment',
+          'New Reply to your Comment',
+          'Someone replied to your comment.',
+          activityId
+        );
+      }
+    } else {
+      eventBus.publish('activity:commented', { activityId, commentId: comment._id.toString() });
+
+      // Notify activity host
+      if (activity.hostId && activity.hostId.toString() !== userId) {
+        await notificationService.createNotification(
+          activity.hostId.toString(),
+          'comment',
+          'New Comment on Activity',
+          'An athlete commented on your activity.',
+          activityId
+        );
+      }
+    }
 
     return comment;
   }

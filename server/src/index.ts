@@ -2,6 +2,9 @@ import app from './app.js';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { logger } from './utils/logger.js';
+import { socketServer } from './socket/socketServer.js';
+import { presenceService } from './services/presenceService.js';
+import { socketHandlers } from './socket/socketHandlers.js';
 
 const startServer = async () => {
   try {
@@ -14,6 +17,15 @@ const startServer = async () => {
         mode: env.NODE_ENV,
       });
     });
+
+    // Initialize Realtime Socket Server
+    socketServer.init(server);
+
+    // Initialize Presence listener
+    presenceService.initListener();
+
+    // Initialize Realtime event handlers bridge
+    socketHandlers.init();
 
     // Graceful shutdown listener registration
     const shutdown = (signal: string) => {

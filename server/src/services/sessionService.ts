@@ -4,6 +4,8 @@ import { locationService } from './locationService.js';
 import { ILiveSession } from '../models/sessionModel.js';
 import { AppError } from '../utils/appError.js';
 import { Types } from 'mongoose';
+import { eventBus } from '../utils/eventBus.js';
+import { notificationService } from './notificationService.js';
 
 export class SessionService {
   private sessionRepo: SessionRepository;
@@ -41,7 +43,12 @@ export class SessionService {
       currentPlayers: [new Types.ObjectId(hostId)], // Host is first player
     };
 
-    return this.sessionRepo.create(sessionData);
+    const session = await this.sessionRepo.create(sessionData);
+
+    // Trigger realtime feed
+    eventBus.publish('session:created', { sessionId: session._id.toString(), session });
+
+    return session;
   }
 
   /**
@@ -78,6 +85,29 @@ export class SessionService {
       throw new AppError('Failed to join live session.', 500);
     }
 
+    // Trigger realtime updates
+    eventBus.publish('session:joined', {
+      sessionId,
+      userId,
+      currentPlayersCount: updatedSession.currentPlayers.length,
+    });
+
+    // Check if full
+    if (updatedSession.currentPlayers.length >= updatedSession.maxPlayers) {
+      eventBus.publish('session:full', { sessionId });
+    }
+
+    // Create database notification for host
+    if (session.hostId && session.hostId.toString() !== userId) {
+      await notificationService.createNotification(
+        session.hostId.toString(),
+        'rsvp',
+        'Player Joined Live Session',
+        `An athlete joined your session "${session.title}".`,
+        sessionId
+      );
+    }
+
     return updatedSession;
   }
 
@@ -91,7 +121,7 @@ export class SessionService {
     }
 
     // Host cannot leave (they should cancel instead)
-    if (session.hostId.toString() === userId) {
+    if (session.hostId && session.hostId.toString() === userId) {
       throw new AppError('Session hosts cannot leave. Please cancel the session instead.', 400);
     }
 
@@ -99,6 +129,13 @@ export class SessionService {
     if (!updatedSession) {
       throw new AppError('Failed to leave live session.', 500);
     }
+
+    // Trigger realtime updates
+    eventBus.publish('session:left', {
+      sessionId,
+      userId,
+      currentPlayersCount: updatedSession.currentPlayers.length,
+    });
 
     return updatedSession;
   }
@@ -112,7 +149,7 @@ export class SessionService {
       throw new AppError('Session not found.', 404);
     }
 
-    if (session.hostId.toString() !== hostId) {
+    if (session.hostId && session.hostId.toString() !== hostId) {
       throw new AppError('Forbidden. Only the host can cancel this session.', 403);
     }
 
@@ -121,6 +158,23 @@ export class SessionService {
     });
     if (!updatedSession) {
       throw new AppError('Failed to cancel session.', 500);
+    }
+
+    // Trigger realtime updates
+    eventBus.publish('session:cancelled', { sessionId, hostId });
+
+    // Notify all participants
+    for (const player of session.currentPlayers) {
+      const pId = player.toString();
+      if (pId !== hostId) {
+        await notificationService.createNotification(
+          pId,
+          'rsvp',
+          'Live Session Cancelled',
+          `The sports session "${session.title}" was cancelled by the host.`,
+          sessionId
+        );
+      }
     }
 
     return updatedSession;
