@@ -1,6 +1,13 @@
 import { Schema, model, Types } from 'mongoose';
 import { IBaseDocument, softDeletePlugin } from './baseSchema.js';
 
+export interface IWeatherInfo {
+  temperature?: number;
+  condition?: string;
+  humidity?: number;
+  windSpeed?: number;
+}
+
 export interface IActivity extends IBaseDocument {
   hostId: Types.ObjectId;
   title: string;
@@ -16,7 +23,31 @@ export interface IActivity extends IBaseDocument {
   maxCapacity: number;
   status: 'open' | 'full' | 'cancelled' | 'completed';
   rsvpCount: number;
+
+  // New fields
+  activityType: string;
+  duration: number; // in minutes
+  distance?: number; // in km
+  calories?: number; // in kcal
+  visibility: 'public' | 'private' | 'friends';
+  participants: Types.ObjectId[];
+  media: string[];
+  tags: string[];
+  completionStatus: 'pending' | 'completed' | 'cancelled';
+  weather?: IWeatherInfo;
+  likesCount: number;
+  commentsCount: number;
 }
+
+const weatherSchema = new Schema<IWeatherInfo>(
+  {
+    temperature: { type: Number, required: false },
+    condition: { type: String, required: false },
+    humidity: { type: Number, required: false },
+    windSpeed: { type: Number, required: false },
+  },
+  { _id: false }
+);
 
 const activitySchema = new Schema<IActivity>(
   {
@@ -93,6 +124,64 @@ const activitySchema = new Schema<IActivity>(
       type: Number,
       default: 1,
     },
+
+    // New profile fields
+    activityType: {
+      type: String,
+      required: [true, 'Activity type is required'],
+      trim: true,
+    },
+    duration: {
+      type: Number,
+      required: [true, 'Duration is required'],
+      min: [1, 'Duration must be at least 1 minute'],
+    },
+    distance: {
+      type: Number,
+      required: false,
+      min: [0, 'Distance cannot be negative'],
+    },
+    calories: {
+      type: Number,
+      required: false,
+      min: [0, 'Calories cannot be negative'],
+    },
+    visibility: {
+      type: String,
+      enum: ['public', 'private', 'friends'],
+      default: 'public',
+    },
+    participants: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    media: {
+      type: [String],
+      default: [],
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    completionStatus: {
+      type: String,
+      enum: ['pending', 'completed', 'cancelled'],
+      default: 'pending',
+    },
+    weather: {
+      type: weatherSchema,
+      required: false,
+    },
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+    commentsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -103,6 +192,7 @@ const activitySchema = new Schema<IActivity>(
 activitySchema.plugin(softDeletePlugin);
 
 // Combined compound geospatial index for feeds and filters
-activitySchema.index({ location: '2dsphere', startTime: 1, sportId: 1 });
+activitySchema.index({ location: '2dsphere', startTime: -1, sportId: 1 });
+activitySchema.index({ hostId: 1, startTime: -1 });
 
 export const Activity = model<IActivity>('Activity', activitySchema);

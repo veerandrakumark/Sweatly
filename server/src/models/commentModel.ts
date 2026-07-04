@@ -5,6 +5,7 @@ export interface IComment extends IBaseDocument {
   activityId: Types.ObjectId;
   userId: Types.ObjectId;
   content: string;
+  parentId?: Types.ObjectId | null;
 }
 
 const commentSchema = new Schema<IComment>(
@@ -25,6 +26,11 @@ const commentSchema = new Schema<IComment>(
       maxlength: [500, 'Comment cannot exceed 500 characters'],
       trim: true,
     },
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Comment',
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -36,5 +42,6 @@ commentSchema.plugin(softDeletePlugin);
 
 // Index to retrieve chat logs quickly
 commentSchema.index({ activityId: 1, createdAt: 1 });
+commentSchema.index({ parentId: 1, createdAt: 1 });
 
 export const Comment = model<IComment>('Comment', commentSchema);

@@ -9,6 +9,10 @@ import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import { logger } from './utils/logger.js';
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import activityRouter from './routes/activityRoutes.js';
+import feedRouter from './routes/feedRoutes.js';
+import commentRouter from './routes/commentRoutes.js';
+import likeRouter from './routes/likeRoutes.js';
 
 const app = express();
 
@@ -44,6 +48,10 @@ app.use(
 // API Version 1 - Authentication & Health Check routes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/activities', activityRouter);
+app.use('/api/v1/feed', feedRouter);
+app.use('/api/v1/comments', commentRouter);
+app.use('/api/v1/likes', likeRouter);
 
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({

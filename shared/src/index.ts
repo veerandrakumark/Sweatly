@@ -164,3 +164,113 @@ export type SportsUpdateInput = z.infer<typeof sportsUpdateSchema>;
 export type PointUpdateInput = z.infer<typeof pointUpdateSchema>;
 export type LocationUpdateInput = z.infer<typeof locationUpdateSchema>;
 export type PrivacyUpdateInput = z.infer<typeof privacyUpdateSchema>;
+
+// Activity Create validation schema
+export const activityCreateSchema = z.object({
+  title: z
+    .string()
+    .min(5, 'Title must be at least 5 characters')
+    .max(100, 'Title cannot exceed 100 characters')
+    .trim(),
+  sportId: z.string().min(1, 'Sport reference is required'),
+  description: z.string().max(2000, 'Description cannot exceed 2000 characters').trim().optional(),
+  startTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid start time' }),
+  endTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid end time' }),
+  location: z.object({
+    coordinates: z.tuple([
+      z.number().min(-180).max(180), // Longitude
+      z.number().min(-90).max(90), // Latitude
+    ]),
+  }),
+  address: z.string().min(1, 'Physical address is required').trim(),
+  maxCapacity: z.number().min(2).max(100).optional(),
+  activityType: z.string().min(1, 'Activity type is required').trim(),
+  duration: z.number().min(1, 'Duration must be at least 1 minute'),
+  distance: z.number().min(0, 'Distance cannot be negative').optional(),
+  calories: z.number().min(0, 'Calories cannot be negative').optional(),
+  visibility: z.enum(['public', 'private', 'friends']).optional(),
+  media: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+// Activity Update validation schema
+export const activityUpdateSchema = z.object({
+  title: z
+    .string()
+    .min(5, 'Title must be at least 5 characters')
+    .max(100, 'Title cannot exceed 100 characters')
+    .trim()
+    .optional(),
+  sportId: z.string().min(1, 'Sport reference is required').optional(),
+  description: z.string().max(2000, 'Description cannot exceed 2000 characters').trim().optional(),
+  startTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid start time' })
+    .optional(),
+  endTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid end time' })
+    .optional(),
+  location: z
+    .object({
+      coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
+    })
+    .optional(),
+  address: z.string().min(1, 'Physical address is required').trim().optional(),
+  maxCapacity: z.number().min(2).max(100).optional(),
+  activityType: z.string().min(1, 'Activity type is required').trim().optional(),
+  duration: z.number().min(1, 'Duration must be at least 1 minute').optional(),
+  distance: z.number().min(0, 'Distance cannot be negative').optional(),
+  calories: z.number().min(0, 'Calories cannot be negative').optional(),
+  visibility: z.enum(['public', 'private', 'friends']).optional(),
+  media: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  completionStatus: z.enum(['pending', 'completed', 'cancelled']).optional(),
+  status: z.enum(['open', 'full', 'cancelled', 'completed']).optional(),
+});
+
+// Comment Create validation schema
+export const commentCreateSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Comment content cannot be empty')
+    .max(500, 'Comment cannot exceed 500 characters')
+    .trim(),
+  parentId: z.string().trim().nullable().optional(),
+});
+
+// Comment Update validation schema
+export const commentUpdateSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Comment content cannot be empty')
+    .max(500, 'Comment cannot exceed 500 characters')
+    .trim(),
+});
+
+// Like Create validation schema
+export const likeSchema = z.object({
+  activityId: z.string().min(1, 'Activity ID is required'),
+});
+
+export type ActivityCreateInput = z.infer<typeof activityCreateSchema>;
+export type ActivityUpdateInput = z.infer<typeof activityUpdateSchema>;
+export type CommentCreateInput = z.infer<typeof commentCreateSchema>;
+export type CommentUpdateInput = z.infer<typeof commentUpdateSchema>;
+export type LikeInput = z.infer<typeof likeSchema>;
