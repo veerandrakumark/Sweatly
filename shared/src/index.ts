@@ -274,3 +274,77 @@ export type ActivityUpdateInput = z.infer<typeof activityUpdateSchema>;
 export type CommentCreateInput = z.infer<typeof commentCreateSchema>;
 export type CommentUpdateInput = z.infer<typeof commentUpdateSchema>;
 export type LikeInput = z.infer<typeof likeSchema>;
+
+// Nearby search query validation schema
+export const nearbySearchSchema = z.object({
+  longitude: z.coerce.number().min(-180).max(180),
+  latitude: z.coerce.number().min(-90).max(90),
+  radius: z.coerce.number().min(100).max(100000).optional(),
+  sportId: z.string().optional(),
+  skillLevel: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+  gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say', 'other']).optional(),
+  ageGroup: z.enum(['under-18', '18-29', '30-49', '50-plus']).optional(),
+  availability: z.string().optional(),
+  onlineStatus: z
+    .preprocess((val) => {
+      if (val === 'true' || val === true) return true;
+      if (val === 'false' || val === false) return false;
+      return undefined;
+    }, z.boolean().optional())
+    .optional(),
+});
+
+// Sports Ground opening hours validation schema
+export const openingHourCreateSchema = z.object({
+  day: z.string().min(1).trim(),
+  open: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid opening time format (HH:MM)'),
+  close: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid closing time format (HH:MM)'),
+});
+
+// Sports Ground creation validation schema
+export const sportsGroundCreateSchema = z.object({
+  name: z.string().min(3, 'Name must be at least 3 characters').max(100).trim(),
+  location: z.object({
+    coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
+  }),
+  address: z.string().min(5, 'Address must be at least 5 characters').max(300).trim(),
+  supportedSports: z.array(z.string()),
+  category: z.string().min(3).trim(),
+  openingHours: z.array(openingHourCreateSchema).optional(),
+  facilities: z.array(z.string()).optional(),
+  images: z.array(z.string()).optional(),
+});
+
+// Live Session creation validation schema
+export const sessionCreateSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters').max(100).trim(),
+  description: z.string().max(2000).optional(),
+  sportsGroundId: z.string().nullable().optional(),
+  sportId: z.string().min(1, 'Sport reference is required'),
+  startTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid start time' }),
+  endTime: z
+    .preprocess((arg) => {
+      if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
+      return arg;
+    }, z.date())
+    .refine((date) => !isNaN(date.getTime()), { message: 'Invalid end time' }),
+  location: z.object({
+    coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
+  }),
+  address: z.string().min(5).max(300).trim(),
+  maxPlayers: z.number().min(2, 'Maximum players must be at least 2'),
+  visibility: z.enum(['public', 'private', 'friends']).optional(),
+});
+
+export type NearbySearchInput = z.infer<typeof nearbySearchSchema>;
+export type SportsGroundCreateInput = z.infer<typeof sportsGroundCreateSchema>;
+export type SessionCreateInput = z.infer<typeof sessionCreateSchema>;

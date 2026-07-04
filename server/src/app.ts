@@ -13,6 +13,9 @@ import activityRouter from './routes/activityRoutes.js';
 import feedRouter from './routes/feedRoutes.js';
 import commentRouter from './routes/commentRoutes.js';
 import likeRouter from './routes/likeRoutes.js';
+import nearbyRouter from './routes/nearbyRoutes.js';
+import groundRouter from './routes/groundRoutes.js';
+import sessionRouter from './routes/sessionRoutes.js';
 
 const app = express();
 
@@ -52,6 +55,9 @@ app.use('/api/v1/activities', activityRouter);
 app.use('/api/v1/feed', feedRouter);
 app.use('/api/v1/comments', commentRouter);
 app.use('/api/v1/likes', likeRouter);
+app.use('/api/v1/nearby', nearbyRouter);
+app.use('/api/v1/grounds', groundRouter);
+app.use('/api/v1/sessions', sessionRouter);
 
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({

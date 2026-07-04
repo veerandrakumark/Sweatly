@@ -10,3 +10,5 @@ export * from './likeRepository.js';
 export * from './notificationRepository.js';
 export * from './sportsGroundRepository.js';
 export * from './refreshTokenRepository.js';
+export * from './sessionRepository.js';
+export * from './nearbyRepository.js';

@@ -1,6 +1,12 @@
 import { Schema, model, Types } from 'mongoose';
 import { IBaseDocument, softDeletePlugin } from './baseSchema.js';
 
+export interface IOpeningHour {
+  day: string; // e.g. "Monday", "Tuesday", etc.
+  open: string; // e.g. "08:00"
+  close: string; // e.g. "22:00"
+}
+
 export interface ISportsGround extends IBaseDocument {
   name: string;
   location: {
@@ -9,7 +15,22 @@ export interface ISportsGround extends IBaseDocument {
   };
   address: string;
   supportedSports: Types.ObjectId[];
+  category: string;
+  openingHours: IOpeningHour[];
+  facilities: string[];
+  averageRating: number;
+  ratingCount: number;
+  images: string[];
 }
+
+const openingHourSchema = new Schema<IOpeningHour>(
+  {
+    day: { type: String, required: true },
+    open: { type: String, required: true },
+    close: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const sportsGroundSchema = new Schema<ISportsGround>(
   {
@@ -47,6 +68,34 @@ const sportsGroundSchema = new Schema<ISportsGround>(
         ref: 'Sport',
       },
     ],
+    category: {
+      type: String,
+      required: [true, 'Sports ground category is required'],
+      trim: true,
+    },
+    openingHours: {
+      type: [openingHourSchema],
+      default: [],
+    },
+    facilities: {
+      type: [String],
+      default: [],
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: [0, 'Rating cannot be negative'],
+      max: [5, 'Rating cannot exceed 5'],
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -58,5 +107,6 @@ sportsGroundSchema.plugin(softDeletePlugin);
 
 // Geospatial index for proximity searches
 sportsGroundSchema.index({ location: '2dsphere' });
+sportsGroundSchema.index({ supportedSports: 1 });
 
 export const SportsGround = model<ISportsGround>('SportsGround', sportsGroundSchema);

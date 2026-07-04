@@ -1,0 +1,397 @@
+openapi: 3.0.3
+info:
+  title: Sweatly Nearby Players, Grounds & Live Sessions API
+  description: OpenAPI specifications for location-based nearby players discovery, grounds lookup, and scheduling live drop-in sports sessions.
+  version: 1.0.0
+security:
+  - BearerAuth: []
+paths:
+  /api/v1/nearby:
+    get:
+      summary: Locate nearby athletes with criteria filtering
+      parameters:
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: number
+            default: 10000
+          description: Search radius in meters.
+        - name: sportId
+          in: query
+          schema:
+            type: string
+        - name: skillLevel
+          in: query
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+        - name: gender
+          in: query
+          schema:
+            type: string
+        - name: ageGroup
+          in: query
+          schema:
+            type: string
+            enum: [under-18, 18-29, 30-49, 50-plus]
+        - name: availability
+          in: query
+          schema:
+            type: string
+        - name: onlineStatus
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of nearby players.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NearbyPlayerResponse'
+
+  /api/v1/grounds:
+    post:
+      summary: Register a new sports ground facility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SportsGroundCreateRequest'
+      responses:
+        '201':
+          description: Sports ground created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SportsGroundResponse'
+    get:
+      summary: Query sports grounds with filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: sportId
+          in: query
+          schema:
+            type: string
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Matches name or address.
+      responses:
+        '200':
+          description: List of grounds matching.
+
+  /api/v1/grounds/nearby:
+    get:
+      summary: Find grounds near coordinates
+      parameters:
+        - name: lon
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: number
+            default: 5000
+        - name: sportId
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of nearby grounds with distances.
+
+  /api/v1/grounds/{id}:
+    get:
+      summary: Get details of a single sports ground
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ground details.
+
+  /api/v1/sessions:
+    post:
+      summary: Create a live sports session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreateRequest'
+      responses:
+        '201':
+          description: Drop-in session scheduled.
+
+  /api/v1/sessions/nearby:
+    get:
+      summary: Find drop-in sessions near coordinates
+      parameters:
+        - name: lon
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: number
+            default: 5000
+        - name: sportId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of nearby sessions.
+
+  /api/v1/sessions/upcoming:
+    get:
+      summary: List upcoming active sessions
+      parameters:
+        - name: sportId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of upcoming sessions.
+
+  /api/v1/sessions/popular:
+    get:
+      summary: List popular active sessions (by player count)
+      parameters:
+        - name: sportId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of popular sessions.
+
+  /api/v1/sessions/{id}:
+    get:
+      summary: Get live session details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session details.
+
+  /api/v1/sessions/{id}/join:
+    post:
+      summary: Join live sports session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Joined successfully.
+
+  /api/v1/sessions/{id}/leave:
+    post:
+      summary: Leave live sports session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Left successfully.
+
+  /api/v1/sessions/{id}/cancel:
+    post:
+      summary: Cancel live session (requires host)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cancelled successfully.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    NearbyPlayerResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        gender:
+          type: string
+        onlineStatus:
+          type: boolean
+        distanceInMeters:
+          type: integer
+          example: 2450
+
+    SportsGroundResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        location:
+          type: object
+          properties:
+            type:
+              type: string
+            coordinates:
+              type: array
+              items:
+                type: number
+        address:
+          type: string
+        supportedSports:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        facilities:
+          type: array
+          items:
+            type: string
+
+    SportsGroundCreateRequest:
+      type: object
+      required: [name, location, address, supportedSports, category]
+      properties:
+        name:
+          type: string
+        location:
+          type: object
+          required: [coordinates]
+          properties:
+            coordinates:
+              type: array
+              items:
+                type: number
+        address:
+          type: string
+        supportedSports:
+          type: array
+          items:
+            type: string
+        category:
+          type: string
+        openingHours:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+              open:
+                type: string
+              close:
+                type: string
+        facilities:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            type: string
+
+    SessionCreateRequest:
+      type: object
+      required: [title, sportId, startTime, endTime, location, address, maxPlayers]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        sportsGroundId:
+          type: string
+          nullable: true
+        sportId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: object
+          required: [coordinates]
+          properties:
+            coordinates:
+              type: array
+              items:
+                type: number
+        address:
+          type: string
+        maxPlayers:
+          type: integer
+        visibility:
+          type: string
+          enum: [public, private, friends]
